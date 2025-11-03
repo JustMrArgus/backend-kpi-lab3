@@ -4,7 +4,7 @@
 
 **My group number: 33**
 
-**Variant for lab3: 33 % 3 = 0 (**
+**Variant for lab3: 33 % 3 = 0 \(Облік доходів\)**
 
 **Every lab builds on the previous one**
 
@@ -18,7 +18,7 @@
 
 ## Environment Variables
 
-This project uses environment variables for configuration. You need to create a `.env` file in the root of the project.
+This project uses environment variables for configuratSion. You need to create a `.env` file in the root of the project.
 
 The file should contain the following variables:
 
