@@ -1,10 +1,14 @@
-# Backend KPI Lab 2
+# Backend KPI Lab 3
 
 **Author:** Oleksandr Rodina, group IM-33
 
+**My group number: 33**
+
+**Variant for lab3: 33 % 3 = 0 (**
+
 **Every lab builds on the previous one**
 
-**Deployed version:** [https://backend-kpi-lab2.onrender.com/healthcheck](https://backend-kpi-lab2.onrender.com/healthcheck)
+**Deployed version:** [LINK](https://backend-kpi-lab3.onrender.com/healthcheck)
 
 ## Requirements
 
