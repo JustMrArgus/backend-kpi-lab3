@@ -1,6 +1,6 @@
-const db = require("../data/data");
+const prisma = require("../prisma/client");
 
-const createRecord = (req, res) => {
+const createRecord = async (req, res) => {
   const { userId, categoryId, amount } = req.body;
 
   if (
@@ -13,31 +13,63 @@ const createRecord = (req, res) => {
       .json({ error: "userId, categoryId, and amount are required" });
   }
 
-  const userExists = db.users.some((u) => u.id === parseInt(userId, 10));
-  const categoryExists = db.categories.some(
-    (c) => c.id === parseInt(categoryId, 10)
-  );
+  const parsedUserId = parseInt(userId, 10);
+  const parsedCategoryId = parseInt(categoryId, 10);
+  const parsedAmount = parseFloat(amount);
 
-  if (!userExists) {
-    return res.status(404).json({ error: "User not found" });
-  }
-  if (!categoryExists) {
-    return res.status(404).json({ error: "Category not found" });
+  if (parsedAmount <= 0) {
+    return res.status(400).json({ error: "Amount must be positive" });
   }
 
-  const newRecord = {
-    id: db.recordIdCounter++,
-    userId: parseInt(userId, 10),
-    categoryId: parseInt(categoryId, 10),
-    createdAt: new Date().toISOString(),
-    amount: parseFloat(amount),
-  };
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parsedUserId },
+      include: { account: true },
+    });
+    const category = await prisma.category.findUnique({
+      where: { id: parsedCategoryId },
+    });
 
-  db.records.push(newRecord);
-  res.status(201).json(newRecord);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+    if (!user.account) {
+      return res.status(500).json({ error: "User account not found" });
+    }
+
+    if (user.account.balance < parsedAmount) {
+      return res.status(400).json({
+        error: "Insufficient funds",
+        currentBalance: user.account.balance,
+      });
+    }
+
+    const [newRecord, updatedAccount] = await prisma.$transaction([
+      prisma.record.create({
+        data: {
+          amount: parsedAmount,
+          userId: parsedUserId,
+          categoryId: parsedCategoryId,
+        },
+      }),
+      prisma.account.update({
+        where: { userId: parsedUserId },
+        data: {
+          balance: { decrement: parsedAmount },
+        },
+      }),
+    ]);
+
+    res.status(201).json(newRecord);
+  } catch (error) {
+    res.status(500).json({ error: "Could not create record" });
+  }
 };
 
-const getRecords = (req, res) => {
+const getRecords = async (req, res) => {
   const { user_id, category_id } = req.query;
 
   if (!user_id && !category_id) {
@@ -46,40 +78,50 @@ const getRecords = (req, res) => {
     });
   }
 
-  let filteredRecords = db.records;
-
+  const where = {};
   if (user_id) {
-    filteredRecords = filteredRecords.filter(
-      (r) => r.userId === parseInt(user_id, 10)
-    );
+    where.userId = parseInt(user_id, 10);
   }
-
   if (category_id) {
-    filteredRecords = filteredRecords.filter(
-      (r) => r.categoryId === parseInt(category_id, 10)
-    );
+    where.categoryId = parseInt(category_id, 10);
   }
 
-  res.status(200).json(filteredRecords);
+  try {
+    const records = await prisma.record.findMany({ where });
+    res.status(200).json(records);
+  } catch (error) {
+    res.status(500).json({ error: "Could not fetch records" });
+  }
 };
 
-const getRecordById = (req, res) => {
+const getRecordById = async (req, res) => {
   const recordId = parseInt(req.params.recordId, 10);
-  const record = db.records.find((r) => r.id === recordId);
-  if (!record) {
-    return res.status(404).json({ error: "Record not found" });
+  try {
+    const record = await prisma.record.findUnique({
+      where: { id: recordId },
+    });
+    if (!record) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    res.status(200).json(record);
+  } catch (error) {
+    res.status(500).json({ error: "Could not fetch record" });
   }
-  res.status(200).json(record);
 };
 
-const deleteRecord = (req, res) => {
+const deleteRecord = async (req, res) => {
   const recordId = parseInt(req.params.recordId, 10);
-  const recordIndex = db.records.findIndex((r) => r.id === recordId);
-  if (recordIndex === -1) {
-    return res.status(404).json({ error: "Record not found" });
+  try {
+    await prisma.record.delete({
+      where: { id: recordId },
+    });
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    res.status(500).json({ error: "Could not delete record" });
   }
-  db.records.splice(recordIndex, 1);
-  res.status(204).send();
 };
 
 module.exports = {
