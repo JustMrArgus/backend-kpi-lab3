@@ -4,12 +4,14 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm install
 
-COPY . /app
+COPY . .
+
+RUN npx prisma generate
 
 ENV PORT=8080
 
 EXPOSE 8080
 
-CMD node server.js
+CMD sh -c "npx prisma db push && node server.js"
