@@ -23,9 +23,11 @@ This project uses environment variables for configuratSion. You need to create a
 The file should contain the following variables:
 
 `PORT`: The port on which the application server will run.
+`DATABASE_URL`: URL to your database.
 
 ```
 PORT=8000
+DATABASE_URL=your_database_url
 ```
 
 **Default PORT is 3000 if not set in `.env` file**
