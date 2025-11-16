@@ -8,6 +8,29 @@ services:
       dockerfile: Dockerfile
     environment:
       PORT: "8080"
-      DATABASE_URL: "postgresql://backend_lab3_db_user:mLYob0dKC6S9gfeWbUIygtq0qTgUsom1@dpg-d44h5immcj7s739u605g-a.oregon-postgres.render.com/backend_lab3_db"
+      DATABASE_URL: "postgresql://myuser:mypassword@db:5432/myapp_db?schema=public"
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: myapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d myapp_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
