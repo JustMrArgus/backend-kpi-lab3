@@ -1,4 +1,4 @@
-# Backend KPI Lab 3
+# Backend KPI Lab 4
 
 **Author:** Oleksandr Rodina, group IM-33
 
@@ -8,7 +8,7 @@
 
 **Every lab builds on the previous one**
 
-**Deployed version:** [LINK](https://backend-kpi-lab3.onrender.com/healthcheck)
+**Deployed version:** [LINK](https://backend-kpi-lab4.onrender.com/healthcheck)
 
 ## Requirements
 
@@ -49,6 +49,12 @@ cd <repo_name>
 # Install dependencies
 npm install
 
+# Generate prisma client
+npx prisma generate
+
+# Create migrations
+npx prisma db push
+
 # Start the server
 npm start
 ```
@@ -57,22 +63,7 @@ The application will be available at `http://localhost:PORT` (where `PORT` is th
 
 ---
 
-#### Option B: Running with Docker
-
-```bash
-# 1. Build the Docker image
-sudo docker build -t api:latest .
-
-# 2. Run the container
-# -e PORT=8000   : Passes the PORT environment variable to the container
-sudo docker run -it --rm --network=host -e PORT=8000 api:latest
-```
-
-The application will be available at `http://localhost:8000`.
-
----
-
-#### Option C: Running with Docker Compose
+#### Option B: Running with Docker Compose
 
 ```bash
 sudo docker compose up
