@@ -1,4 +1,4 @@
-# Backend KPI Lab 4
+# Backend KPI Lab 3
 
 **Author:** Oleksandr Rodina, group IM-33
 
